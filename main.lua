@@ -1,65 +1,47 @@
--- Limpa tentativas anteriores para não pesar
-print("Tentando carregar script de Brainrot...")
+print("--- BUSCADOR DE FRULLI INICIADO ---")
 
-local function IniciarScript()
-    local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
-    
-    local Window = OrionLib:MakeWindow({
-        Name = "Brainrot Stealer Pro", 
-        HidePremium = false, 
-        SaveConfig = false, 
-        ConfigFolder = "DeltaScript"
-    })
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
 
-    local Tab = Window:MakeTab({
-        Name = "Auto TP",
-        Icon = "rbxassetid://4483345998"
-    })
+-- Lista de itens raros
+local alvos = {"Frulli Frulla", "Fragola La La La"}
 
-    _G.AutoTP = false
+_G.AutoFarm = true
 
-    local function Teleportar()
-        while _G.AutoTP do
-            local alvoEncontrado = false
-            -- Busca o bicho no mapa inteiro
-            for _, v in pairs(game.Workspace:GetDescendants()) do
-                if v.Name == "Frulli Frulla" or v.Name == "Fragola La La La" then
-                    local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                    if hrp then
-                        -- TP com pequena altura para não bugar no chão
-                        hrp.CFrame = v.CFrame * CFrame.new(0, 3, 0)
-                        alvoEncontrado = true
+task.spawn(function()
+    while _G.AutoFarm do
+        local encontrouNoMapa = false
+        
+        for _, obj in pairs(game.Workspace:GetDescendants()) do
+            -- Verifica se o nome é um dos alvos
+            local matches = false
+            for _, nome in ipairs(alvos) do
+                if obj.Name == nome then matches = true break end
+            end
+
+            if matches then
+                -- O SEGREDO: Verifica se o item NÃO está dentro de um Slot ou de outro Player
+                local noSlot = obj:FindFirstAncestor("Slots") or obj:FindFirstAncestor("Bases") or obj:FindFirstAncestorOfClass("Player")
+                
+                if not noSlot then
+                    -- Se chegou aqui, o item está solto no mapa!
+                    local targetPart = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart", true)
+                    
+                    if targetPart then
+                        print("ITEM LIVRE DETECTADO! Dando TP...")
+                        root.CFrame = targetPart.CFrame * CFrame.new(0, 3, 0)
+                        encontrouNoMapa = true
+                        task.wait(0.5) -- TP instantâneo
                     end
                 end
             end
-            task.wait(0.5) -- Velocidade de busca (meio segundo)
         end
-    end
-
-    Tab:AddToggle({
-        Name = "Auto TP (Frulli / Fragola)",
-        Default = false,
-        Callback = function(Value)
-            _G.AutoTP = Value
-            if Value then
-                task.spawn(Teleportar)
-            end
-        end    
-    })
-
-    OrionLib:Init()
-end
-
--- Tenta carregar o script com proteção contra erros
-local success, err = pcall(IniciarScript)
-
-if not success then
-    warn("Erro ao carregar o menu: " .. tostring(err))
-    -- Se o menu falhar, ele tenta dar o TP seco sem menu pra você não perder o bicho
-    print("Tentando TP de emergência sem menu...")
-    for _, v in pairs(game.Workspace:GetDescendants()) do
-        if v.Name == "Frulli Frulla" then
-            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame
+        
+        if not encontrouNoMapa then
+            -- Opcional: print("Nenhum bicho livre agora...")
         end
+        
+        task.wait(0.1) -- Procura muito rápido (10 vezes por segundo)
     end
-end
+end)
