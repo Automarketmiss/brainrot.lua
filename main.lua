@@ -9,22 +9,22 @@ local Tab = Window:MakeTab({
 
 _G.AutoTP = false
 
-function teleportToFragola()
+-- Função para procurar e dar TP
+function teleportToItem()
     while _G.AutoTP do
         local found = false
-        -- Procura em todo o Workspace pelo nome do bicho
+        -- Procura pelo nome "Frulli Frulla"
         for _, obj in pairs(game.Workspace:GetDescendants()) do
-            if obj.Name == "Fragola La La La" or obj:IsA("Model") and obj.Name:find("Fragola") then
+            if obj.Name == "Frulli Frulla" or (obj:IsA("Model") and obj.Name:find("Frulli")) then
                 local rootPart = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                -- Tenta achar uma parte do bicho para encostar
                 local targetPart = obj:FindFirstChildWhichIsA("BasePart") or obj:FindFirstChild("HumanoidRootPart")
                 
                 if rootPart and targetPart then
-                    -- TP Suave para evitar detecção imediata
                     rootPart.CFrame = targetPart.CFrame * CFrame.new(0, 3, 0)
                     OrionLib:MakeNotification({
                         Name = "Item Encontrado!",
-                        Content = "Teleportado para Fragola!",
-                        Image = "rbxassetid://4483345998",
+                        Content = "Teleportado para Frulli Frulla!",
                         Time = 5
                     })
                     found = true
@@ -32,23 +32,17 @@ function teleportToFragola()
                 end
             end
         end
-        if not found then
-            -- Se não achar, espera 2 segundos e tenta de novo
-            task.wait(2)
-        else
-            -- Se achar, espera um pouco para não bugar o TP
-            task.wait(5)
-        end
+        task.wait(1) -- Verifica a cada 1 segundo
     end
 end
 
 Tab:AddToggle({
-	Name = "Auto TP Fragola (Secreto)",
+	Name = "Auto TP Frulli Frulla",
 	Default = false,
 	Callback = function(Value)
 		_G.AutoTP = Value
         if Value then
-            teleportToFragola()
+            task.spawn(teleportToItem) -- Roda em segundo plano
         end
 	end    
 })
